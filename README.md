@@ -36,7 +36,7 @@ Are you tired of manually setting up Termux? Facing issues installing essential 
 
 Step 1: Clone the Repository
 
-git clone https://github.com/YOUR-USERNAME/Termux-Ultimate-Setup.git
+git clone https://github.com/edunoluwadarasimidavid/Termux-Ultimate-Setup.git
 cd Termux-Ultimate-Setup
 
 Step 2: Grant Execution Permission
