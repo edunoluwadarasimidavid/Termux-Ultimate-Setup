@@ -1,7 +1,7 @@
-🚀 Ultimate Termux Setup Script
+🚀 Termux-Ultimate-Setup
 
 
-The most advanced, all-in-one Termux setup script for beginners and experts!
+The most advanced, all-in-one Termux-Ultimate-Setup for beginners and experts!
 
 
 ---

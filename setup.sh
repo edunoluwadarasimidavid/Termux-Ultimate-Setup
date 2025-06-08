@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define Colors
 GREEN="\e[32m"
@@ -46,7 +46,11 @@ install_hacking_tools() {
 # Function to install Zsh and Oh-My-Zsh
 install_zsh() {
     echo -e "${CYAN}Installing Zsh & Oh-My-Zsh...${RESET}"
-    pkg install zsh -y && chsh -s zsh
+    pkg install zsh -y || {
+        echo -e "${RED}Error installing Zsh!${RESET}"
+        exit 1
+    }
+    chsh -s zsh
     curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
     echo -e "${GREEN}Zsh Installed! Restart Termux to see changes.${RESET}"
 }
@@ -54,7 +58,10 @@ install_zsh() {
 # Function to install Docker in Termux
 install_docker() {
     echo -e "${MAGENTA}Installing Docker in Termux...${RESET}"
-    pkg install proot-distro -y
+    pkg install proot-distro -y || {
+        echo -e "${RED}Error installing proot-distro!${RESET}"
+        exit 1
+    }
     proot-distro install ubuntu
     echo -e "${GREEN}Docker-like environment set up in Termux!${RESET}"
 }
@@ -62,7 +69,10 @@ install_docker() {
 # Function to install additional Linux OS
 deploy_linux_os() {
     echo -e "${CYAN}Installing a full Linux OS in Termux...${RESET}"
-    pkg install proot-distro -y
+    pkg install proot-distro -y || {
+        echo -e "${RED}Error installing proot-distro!${RESET}"
+        exit 1
+    }
     echo -e "Choose an OS to install:\n1) Ubuntu\n2) Kali Linux\n3) Arch Linux"
     read -p "Enter choice: " os_choice
     case $os_choice in
@@ -75,35 +85,71 @@ deploy_linux_os() {
 
 # Function to enable dark mode
 enable_dark_mode() {
-    echo "PS1='\e[1;30m\u@\h:\w\$ \e[0m'" >> ~/.bashrc
-    echo -e "${GREEN}Dark Mode Enabled! Restart Termux to apply.${RESET}"
+    local prompt_string="PS1='\e[1;30m\u@\h:\w\$ \e[0m'"
+    local modified_files=""
+
+    # Check and update .bashrc
+    if [ -f ~/.bashrc ]; then
+        if ! grep -qF "$prompt_string" ~/.bashrc; then
+            echo "$prompt_string" >> ~/.bashrc
+            modified_files+="~/.bashrc "
+        fi
+    else
+        echo -e "${YELLOW}~/.bashrc not found.${RESET}"
+    fi
+
+    # Check and update .zshrc if it exists
+    if [ -f ~/.zshrc ]; then
+        if ! grep -qF "$prompt_string" ~/.zshrc; then
+            echo "" >> ~/.zshrc # Add a newline for separation
+            echo "# Dark mode prompt (may need adjustment for Zsh)" >> ~/.zshrc
+            echo "$prompt_string" >> ~/.zshrc
+            modified_files+="~/.zshrc "
+        fi
+    fi
+
+    if [ -n "$modified_files" ]; then
+        echo -e "${GREEN}Dark Mode prompt added/updated in: $modified_files. Restart Termux to apply.${RESET}"
+    else
+        echo -e "${YELLOW}Dark Mode prompt already set or shell configuration files not found/writable.${RESET}"
+    fi
 }
 
 # Function to display system monitor
 system_monitor() {
     echo -e "${MAGENTA}Launching Real-Time System Monitor...${RESET}"
-    pkg install glances -y && glances
+    pkg install glances -y || {
+        echo -e "${RED}Error installing glances!${RESET}"
+        exit 1
+    }
+    glances
 }
 
 # Function for voice control
 enable_voice_commands() {
     echo -e "${CYAN}Installing voice command support...${RESET}"
-    pkg install termux-api -y
-    echo -e "${GREEN}Now use 'termux-voice' to interact with Termux via voice.${RESET}"
+    pkg install termux-api -y || {
+        echo -e "${RED}Error installing termux-api!${RESET}"
+        exit 1
+    }
+    echo -e "${GREEN}Termux:API installed. You can use 'termux-tts-speak' for text-to-speech and 'termux-microphone-record' for recording. For more advanced voice control, you may need to explore or create custom scripts.${RESET}"
 }
 
 # Function to set up VPN
 setup_vpn() {
     echo -e "${BLUE}Setting up a secure VPN...${RESET}"
-    pkg install openvpn -y
+    pkg install openvpn -y || {
+        echo -e "${RED}Error installing openvpn!${RESET}"
+        exit 1
+    }
     echo -e "${GREEN}VPN installed! Configure with 'openvpn --config yourfile.ovpn'.${RESET}"
 }
 
-# Function for AI-Powered Auto-Fixer
-auto_fixer() {
-    echo -e "${CYAN}Scanning and fixing common Termux issues...${RESET}"
+# Function for package maintenance
+perform_maintenance() {
+    echo -e "${CYAN}Performing package cache cleanup and updating packages...${RESET}"
     pkg autoclean && pkg update -y
-    echo -e "${GREEN}Common issues resolved!${RESET}"
+    echo -e "${GREEN}Package cache cleaned and packages updated!${RESET}"
 }
 
 # Function to display dashboard
@@ -118,7 +164,7 @@ show_dashboard() {
     echo -e "7) Enable Voice Control for Termux"
     echo -e "8) Run System Monitor"
     echo -e "9) Setup VPN"
-    echo -e "10) AI Auto-Fixer"
+    echo -e "10) Perform Maintenance (Clean & Update)"
     echo -e "11) Exit"
     read -p "Enter choice: " choice
 
@@ -132,7 +178,7 @@ show_dashboard() {
         7) enable_voice_commands ;;
         8) system_monitor ;;
         9) setup_vpn ;;
-        10) auto_fixer ;;
+        10) perform_maintenance ;;
         11) echo -e "${YELLOW}Exiting...${RESET}" ; exit ;;
         *) echo -e "${RED}Invalid Choice!${RESET}" ; show_dashboard ;;
     esac
